@@ -9,7 +9,7 @@ SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 
 # The Beman Standard
 
-This document specifies rules and recommendations for Beman project libraries.
+This document specifies requirements and recommendations for Beman project libraries.
 Its goal is to create consistency facilitating the evaluation of, and
 contribution to Beman libraries.
 
@@ -48,10 +48,10 @@ Note: When making minor changes such as fixing typos, correcting grammar mistake
 
 ### Conventions
 
-This standard consists of entries that include an all-caps, dot-separated
+This standard consists of entries that include a lowercase, dot-separated
 identifier for referencing.
 
-With the exception of the core principles, these entries are either rules or
+With the exception of the core principles, these entries are either requirements or
 recommendations.
 
 - **Requirements** must be followed in order to conform to this standard. These entries
@@ -838,18 +838,35 @@ entities in the `beman::<short_name>` namespace.
 **Requirement**: C++ preprocessing must produce identical output regardless of compiler flags.
 
 Therefore, feature test macros such as `__cpp_explicit_this_parameter` should
-not be used directly. Instead use the following approach for feature-dependent
+not be used directly. 
+
+**Recommendation**: Feature-dependent code should create `#define`s in generated headers based on CMake options, with a fallback for users who just vendor the include/ directory.
+
+Instead use the following approach for feature-dependent
 code generation:
 
-1. Check for availability at CMake time using, for example,
-   `check_cxx_source_compiles`.
-2. Create a CMake `option` (e.g. `BEMAN_<short_name>_USE_DEDUCING_THIS`)
-   with a default value based on detected support.
-3. Generate a `config.hpp` with a `#define` macro set to the selected option.
-4. Use this macro in place of the feature test macro.
+1. Create a CMake `option` (e.g. `BEMAN_EXEMPLAR_USE_FEATURE_QUUX`).
+2. Depending on the option, you may want to implement a check for its availability at
+   CMake time, using, for example, `check_cxx_source_compiles`, and set the option's
+   default value based on the result.
+3. Generate a `config_generated.hpp` with a `#define` macro set to the selected option.
+4. Create a `config.hpp` file that wraps `config_generated.hpp` with the following logic,
+   providing fallback defaults for users who vendor the include/ directory:
+
+```cpp
+#if !defined(__has_include) ||                                                 \
+    __has_include(<beman/exemplar/config_generated.hpp>)
+#include <beman/exemplar/config_generated.hpp>
+#else
+#define BEMAN_EXEMPLAR_USE_FEATURE_QUUX() 1
+#endif
+```
+
+5. Include `config.hpp` in your headers, and use the resulting macro instead of the
+   feature test macro.
 
 See
-[beman.iterator_interface](https://github.com/bemanproject/iterator_interface/blob/5e6714e10faa1799723669e04abec6e75adbdb89/CMakeLists.txt#L44)
+[beman.iterator_interface](https://github.com/bemanproject/iterator_interface/blob/473a9400fd51b9a4e3372a716ac1b501ec0297ad/CMakeLists.txt#L21)
 for an example.
 
 ### **[cpp.extension_identifiers]**
