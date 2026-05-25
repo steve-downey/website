@@ -266,44 +266,53 @@ Examples:
 
 ### **[readme.badges]**
 
-**Requirement**: Following the title, the `README.md` must have a one-line badge list. Examples: library status (`[readme.library_status]`), CI status, code coverage, Compiler Explorer example.
+**Requirement**: Following the title, the `README.md` must have a badge list. Examples: library status (`[readme.library_status]`), CI status, code coverage, Compiler Explorer example.
 
 Example:
 ```markdown
-![Library Status](https://raw.githubusercontent.com/bemanproject/beman/refs/heads/main/images/badges/beman_badge-beman_library_under_development.svg) ![Continuous Integration Tests](https://github.com/bemanproject/exemplar/actions/workflows/ci_tests.yml/badge.svg) ![Lint Check (pre-commit)](https://github.com/bemanproject/exemplar/actions/workflows/pre-commit.yml/badge.svg) [![Compiler Explorer Example](https://img.shields.io/badge/Try%20it%20on%20Compiler%20Explorer-grey?logo=compilerexplorer&logoColor=67c52a)](https://godbolt.org)
+[![Library Status](https://raw.githubusercontent.com/bemanproject/beman/refs/heads/main/images/badges/beman_badge-beman_library_under_development.svg)](https://github.com/bemanproject/beman/blob/main/docs/beman_library_maturity_model.md#the-beman-library-maturity-model)
+[![Continuous Integration Tests](https://github.com/bemanproject/exemplar/actions/workflows/ci_tests.yml/badge.svg)](https://github.com/bemanproject/exemplar/actions/workflows/ci_tests.yml)
+[![Lint Check (pre-commit)](https://github.com/bemanproject/exemplar/actions/workflows/pre-commit-check.yml/badge.svg)](https://github.com/bemanproject/exemplar/actions/workflows/pre-commit-check.yml)
+[![Coverage](https://coveralls.io/repos/github/bemanproject/exemplar/badge.svg?branch=main)](https://coveralls.io/github/bemanproject/exemplar?branch=main)
+![Standard Target](https://github.com/bemanproject/beman/blob/main/images/badges/cpp29.svg)
+[![Compiler Explorer Example](https://img.shields.io/badge/Try%20it%20on%20Compiler%20Explorer-grey?logo=compilerexplorer&logoColor=67c52a)](https://godbolt.org/z/4qEPK87va)
 ```
 
-Use exactly one of the following entries for the library status badge:
+Use exactly one of the following entries for the library status badge.
+
+For "Under development" (which should be used by new libraries), use:
 
 ```markdown
-![Library Status](https://raw.githubusercontent.com/bemanproject/beman/refs/heads/main/images/badges/beman_badge-beman_library_under_development.svg)
+[![Library Status](https://raw.githubusercontent.com/bemanproject/beman/refs/heads/main/images/badges/beman_badge-beman_library_under_development.svg)](https://github.com/bemanproject/beman/blob/main/docs/beman_library_maturity_model.md#the-beman-library-maturity-model)
 ```
 
-or
+For "Production ready. API may undergo changes," use:
 
 ```markdown
-![Library Status](https://raw.githubusercontent.com/bemanproject/beman/refs/heads/main/images/badges/beman_badge-beman_library_production_ready_api_may_undergo_changes.svg)
+[![Library Status](https://raw.githubusercontent.com/bemanproject/beman/refs/heads/main/images/badges/beman_badge-beman_library_production_ready_api_may_undergo_changes.svg)](https://github.com/bemanproject/beman/blob/main/docs/beman_library_maturity_model.md#the-beman-library-maturity-model)
 ```
 
-or
+For "Production ready. Stable API," use:
 
 ```markdown
-![Library Status](https://raw.githubusercontent.com/bemanproject/beman/refs/heads/main/images/badges/beman_badge-beman_library_production_ready_stable_api.svg)
+[![Library Status](https://raw.githubusercontent.com/bemanproject/beman/refs/heads/main/images/badges/beman_badge-beman_library_production_ready_stable_api.svg)](https://github.com/bemanproject/beman/blob/main/docs/beman_library_maturity_model.md#the-beman-library-maturity-model)
 ```
 
-or
+For "Retired. No longer maintained or actively developed," use:
 
 ```markdown
-![Library Status](https://raw.githubusercontent.com/bemanproject/beman/refs/heads/main/images/badges/beman_badge-beman_library_retired.svg)
+[![Library Status](https://raw.githubusercontent.com/bemanproject/beman/refs/heads/main/images/badges/beman_badge-beman_library_retired.svg)](https://github.com/bemanproject/beman/blob/main/docs/beman_library_maturity_model.md#the-beman-library-maturity-model)
 ```
 
-Use exactly one of the following entries for the standard target status badge:
+Use exactly one of the following entries for the standard target status badge. 
+
+For C++26, use:
 
 ```markdown
 ![Standard Target](https://github.com/bemanproject/beman/blob/main/images/badges/cpp26.svg)
 ```
 
-or
+For C++29, use:
 
 ```markdown
 ![Standard Target](https://github.com/bemanproject/beman/blob/main/images/badges/cpp29.svg)
@@ -794,8 +803,7 @@ Examples: `identity.test.cpp`, `optional_ref.test.cpp` or `optional_range_suppor
 
 ### **[file.license_id]**
 
-**Requirement**: The [SPDX license identifier](https://spdx.dev/learn/handling-license-info/) must be added at the
-first possible line in all files which can contain a comment
+**Requirement**: The [SPDX license identifier](https://spdx.dev/learn/handling-license-info/) must be added within the first 25 lines in all files which can contain a comment
 (e.g., C++, scripts, CMake/Makefile, YAML/YML, JASON, XML, HTML, LaTeX, Dockerfile etc).
 
 Examples:
@@ -838,18 +846,35 @@ entities in the `beman::<short_name>` namespace.
 **Requirement**: C++ preprocessing must produce identical output regardless of compiler flags.
 
 Therefore, feature test macros such as `__cpp_explicit_this_parameter` should
-not be used directly. Instead use the following approach for feature-dependent
+not be used directly. 
+
+**Recommendation**: Feature-dependent code should create `#define`s in generated headers based on CMake options, with a fallback for users who just vendor the include/ directory.
+
+Instead use the following approach for feature-dependent
 code generation:
 
-1. Check for availability at CMake time using, for example,
-   `check_cxx_source_compiles`.
-2. Create a CMake `option` (e.g. `BEMAN_<short_name>_USE_DEDUCING_THIS`)
-   with a default value based on detected support.
-3. Generate a `config.hpp` with a `#define` macro set to the selected option.
-4. Use this macro in place of the feature test macro.
+1. Create a CMake `option` (e.g. `BEMAN_EXEMPLAR_USE_FEATURE_QUUX`).
+2. Depending on the option, you may want to implement a check for its availability at
+   CMake time, using, for example, `check_cxx_source_compiles`, and set the option's
+   default value based on the result.
+3. Generate a `config_generated.hpp` with a `#define` macro set to the selected option.
+4. Create a `config.hpp` file that wraps `config_generated.hpp` with the following logic,
+   providing fallback defaults for users who vendor the include/ directory:
+
+```cpp
+#if !defined(__has_include) ||                                                 \
+    __has_include(<beman/exemplar/config_generated.hpp>)
+#include <beman/exemplar/config_generated.hpp>
+#else
+#define BEMAN_EXEMPLAR_USE_FEATURE_QUUX() 1
+#endif
+```
+
+5. Include `config.hpp` in your headers, and use the resulting macro instead of the
+   feature test macro.
 
 See
-[beman.iterator_interface](https://github.com/bemanproject/iterator_interface/blob/5e6714e10faa1799723669e04abec6e75adbdb89/CMakeLists.txt#L44)
+[beman.iterator_interface](https://github.com/bemanproject/iterator_interface/blob/473a9400fd51b9a4e3372a716ac1b501ec0297ad/CMakeLists.txt#L21)
 for an example.
 
 ### **[cpp.extension_identifiers]**
